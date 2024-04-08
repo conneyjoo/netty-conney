@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <artifactId>netty-parent</artifactId>
+    <groupId>io.netty</groupId>
+    <version>4.1.45.Final</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>netty-testsuite-shading</artifactId>
+  <name>Netty/Testsuite/Shading</name>
+  <build>
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.6.0</version>
+      </extension>
+    </extensions>
+    <plugins>
+      <plugin>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <profiles>
+    <profile>
+      <id>skipTests</id>
+      <properties>
+        <os.detected.name>osx</os.detected.name>
+        <os.detected.classifier>osx-x86_64</os.detected.classifier>
+        <os.detected.arch>x86_64</os.detected.arch>
+        <skipShadingTestsuite>true</skipShadingTestsuite>
+      </properties>
+    </profile>
+    <profile>
+      <id>windows</id>
+      <dependencies>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>netty-common</artifactId>
+          <version>${project.version}</version>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>netty-handler</artifactId>
+          <version>${project.version}</version>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>${tcnative.artifactId}</artifactId>
+          <version>${tcnative.version}</version>
+          <classifier>${tcnative.classifier}</classifier>
+          <scope>compile</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>mac</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.2.1</version>
+            <executions>
+              <execution>
+                <id>shade</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+                <configuration>
+                  <artifactSet>
+                    <includes>
+                      <include>io.netty</include>
+                    </includes>
+                  </artifactSet>
+                  <relocations>
+                    <relocation>
+                      <pattern>io.netty.</pattern>
+                      <shadedPattern>shaded.io.netty.</shadedPattern>
+                    </relocation>
+                  </relocations>
+                </configuration>
+              </execution>
+              <execution>
+                <id>shade-1</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+                <configuration>
+                  <artifactSet>
+                    <includes>
+                      <include>io.netty</include>
+                    </includes>
+                  </artifactSet>
+                  <relocations>
+                    <relocation>
+                      <pattern>io.netty.</pattern>
+                      <shadedPattern>shaded2.io.netty.</shadedPattern>
+                    </relocation>
+                  </relocations>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.8</version>
+            <executions>
+              <execution>
+                <id>write-version-properties</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <taskdef />
+                    <exec>
+                      <arg />
+                      <arg />
+                      <arg />
+                      <arg />
+                    </exec>
+                    <propertyregex />
+                    <propertyregex />
+                    <propertyregex />
+                    <exec>
+                      <arg />
+                      <arg />
+                    </exec>
+                    <if>
+                      <equals />
+                      <then>
+                        <if>
+                          <equals />
+                          <then>
+                            <property />
+                          </then>
+                          <else>
+                            <property />
+                          </else>
+                        </if>
+                      </then>
+                      <else>
+                        <property />
+                      </else>
+                    </if>
+                    <echo>Current commit: ${shortCommitHash} on ${commitDate}</echo>
+                    <property />
+                    <property />
+                    <mkdir />
+                    <delete />
+                    <propertyfile>
+                      <entry />
+                      <entry />
+                      <entry />
+                      <entry />
+                      <entry />
+                      <entry />
+                    </propertyfile>
+                  </target>
+                </configuration>
+              </execution>
+              <execution>
+                <id>unpack-jar-features</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <skip>true</skip>
+                  <target>
+                    <unzip>
+                      <fileset>
+                        <include />
+                      </fileset>
+                    </unzip>
+                    <copy />
+                    <copy />
+                    <delete />
+                    <condition>
+                      <equals />
+                    </condition>
+                    <copy />
+                    <copy />
+                    <delete />
+                    <jar />
+                    <delete />
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+            <dependencies>
+              <dependency>
+                <groupId>org.apache.ant</groupId>
+                <artifactId>ant</artifactId>
+                <version>1.9.7</version>
+                <scope>compile</scope>
+              </dependency>
+              <dependency>
+                <groupId>org.apache.ant</groupId>
+                <artifactId>ant-launcher</artifactId>
+                <version>1.9.7</version>
+                <scope>compile</scope>
+              </dependency>
+              <dependency>
+                <groupId>ant-contrib</groupId>
+                <artifactId>ant-contrib</artifactId>
+                <version>1.0b3</version>
+                <scope>compile</scope>
+                <exclusions>
+                  <exclusion>
+                    <artifactId>ant</artifactId>
+                    <groupId>ant</groupId>
+                  </exclusion>
+                </exclusions>
+              </dependency>
+            </dependencies>
+          </plugin>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>2.22.1</version>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>integration-test</goal>
+                </goals>
+                <configuration>
+                  <skip>true</skip>
+                  <systemPropertyVariables>
+                    <shadingPrefix>shaded</shadingPrefix>
+                    <shadingPrefix2>shaded2</shadingPrefix2>
+                  </systemPropertyVariables>
+                </configuration>
+              </execution>
+            </executions>
+            <configuration>
+              <skip>true</skip>
+              <systemPropertyVariables>
+                <shadingPrefix>shaded</shadingPrefix>
+                <shadingPrefix2>shaded2</shadingPrefix2>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-common</artifactId>
+          <version>4.1.45.Final</version>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-transport-native-kqueue</artifactId>
+          <version>4.1.45.Final</version>
+          <classifier>osx-x86_64</classifier>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-handler</artifactId>
+          <version>4.1.45.Final</version>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-tcnative</artifactId>
+          <version>2.0.28.Final</version>
+          <classifier>osx-x86_64</classifier>
+          <scope>compile</scope>
+        </dependency>
+      </dependencies>
+      <properties>
+        <os.detected.name>osx</os.detected.name>
+        <nativeTransportLib>netty_transport_native_kqueue_${os.detected.arch}.jnilib</nativeTransportLib>
+        <os.detected.classifier>osx-x86_64</os.detected.classifier>
+        <os.detected.arch>x86_64</os.detected.arch>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-shade-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>shade</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+                <configuration>
+                  <artifactSet>
+                    <includes>
+                      <include>${project.groupId}</include>
+                    </includes>
+                  </artifactSet>
+                  <relocations>
+                    <relocation>
+                      <pattern>${shadedPackagePrefix}</pattern>
+                      <shadedPattern>${shadingPrefix}.${shadedPackagePrefix}</shadedPattern>
+                    </relocation>
+                  </relocations>
+                </configuration>
+              </execution>
+              <execution>
+                <id>shade-1</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+                <configuration>
+                  <artifactSet>
+                    <includes>
+                      <include>${project.groupId}</include>
+                    </includes>
+                  </artifactSet>
+                  <relocations>
+                    <relocation>
+                      <pattern>${shadedPackagePrefix}</pattern>
+                      <shadedPattern>${shadingPrefix2}.${shadedPackagePrefix}</shadedPattern>
+                    </relocation>
+                  </relocations>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>unpack-jar-features</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <skip>${skipShadingTestsuite}</skip>
+                  <target>
+                    <unzip>
+                      <fileset>
+                        <include />
+                      </fileset>
+                    </unzip>
+                    <copy />
+                    <copy />
+                    <delete />
+                    <condition>
+                      <equals />
+                    </condition>
+                    <copy />
+                    <copy />
+                    <delete />
+                    <jar />
+                    <delete />
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>integration-test</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <skip>${skipShadingTestsuite}</skip>
+              <systemPropertyVariables>
+                <shadingPrefix>${shadingPrefix}</shadingPrefix>
+                <shadingPrefix2>${shadingPrefix2}</shadingPrefix2>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>netty-common</artifactId>
+          <version>${project.version}</version>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>netty-transport-native-epoll</artifactId>
+          <version>${project.version}</version>
+          <classifier>${jni.classifier}</classifier>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>netty-handler</artifactId>
+          <version>${project.version}</version>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>${tcnative.artifactId}</artifactId>
+          <version>${tcnative.version}</version>
+          <classifier>${tcnative.classifier}</classifier>
+          <scope>compile</scope>
+        </dependency>
+      </dependencies>
+      <properties>
+        <nativeTransportLib>netty_transport_native_epoll_${os.detected.arch}.so</nativeTransportLib>
+      </properties>
+    </profile>
+  </profiles>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>hamcrest-core</artifactId>
+          <groupId>org.hamcrest</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.javassist</groupId>
+      <artifactId>javassist</artifactId>
+      <version>3.20.0-GA</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-build</artifactId>
+      <version>25</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>checkstyle</artifactId>
+          <groupId>com.puppycrawl.tools</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>hamcrest-core</artifactId>
+          <groupId>org.hamcrest</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.1.7</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>logback-core</artifactId>
+          <groupId>ch.qos.logback</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>slf4j-api</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+  </dependencies>
+  <properties>
+    <generatedSourceDir>${project.build.directory}/src</generatedSourceDir>
+    <shadedPackagePrefix>io.netty.</shadedPackagePrefix>
+    <classesShadedNativeDir>${classesShadedDir}/META-INF/native</classesShadedNativeDir>
+    <dependencyVersionsDir>${project.build.directory}/versions</dependencyVersionsDir>
+    <skipJapicmp>true</skipJapicmp>
+    <shadingPrefix2>shaded2</shadingPrefix2>
+    <classesShadedDir>${project.build.directory}/classes-shaded</classesShadedDir>
+    <shadingPrefix>shaded</shadingPrefix>
+    <jarName>${project.artifactId}-${project.version}.jar</jarName>
+  </properties>
+</project>
