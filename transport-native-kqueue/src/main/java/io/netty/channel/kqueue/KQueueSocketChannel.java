@@ -25,7 +25,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.Executor;
 
 @UnstableApi
-public final class KQueueSocketChannel extends AbstractKQueueStreamChannel implements SocketChannel {
+public class KQueueSocketChannel extends AbstractKQueueStreamChannel implements SocketChannel {
     private final KQueueSocketChannelConfig config;
 
     public KQueueSocketChannel() {

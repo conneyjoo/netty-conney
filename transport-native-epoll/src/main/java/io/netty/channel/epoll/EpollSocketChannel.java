@@ -35,7 +35,7 @@ import static io.netty.channel.epoll.LinuxSocket.newSocketStream;
  * {@link SocketChannel} implementation that uses linux EPOLL Edge-Triggered Mode for
  * maximal performance.
  */
-public final class EpollSocketChannel extends AbstractEpollStreamChannel implements SocketChannel {
+public class EpollSocketChannel extends AbstractEpollStreamChannel implements SocketChannel {
 
     private final EpollSocketChannelConfig config;
 

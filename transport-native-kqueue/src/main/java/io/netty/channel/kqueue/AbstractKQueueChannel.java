@@ -54,19 +54,19 @@ import static io.netty.channel.internal.ChannelUtils.WRITE_STATUS_SNDBUF_FULL;
 import static io.netty.channel.unix.UnixChannelUtil.computeRemoteAddr;
 import static io.netty.util.internal.ObjectUtil.checkNotNull;
 
-abstract class AbstractKQueueChannel extends AbstractChannel implements UnixChannel {
+public abstract class AbstractKQueueChannel extends AbstractChannel implements UnixChannel {
     private static final ChannelMetadata METADATA = new ChannelMetadata(false);
     /**
      * The future of the current connection attempt.  If not null, subsequent
      * connection attempts will fail.
      */
-    private ChannelPromise connectPromise;
+    protected ChannelPromise connectPromise;
     private ScheduledFuture<?> connectTimeoutFuture;
     private SocketAddress requestedRemoteAddress;
 
     final BsdSocket socket;
     private boolean readFilterEnabled;
-    private boolean writeFilterEnabled;
+    public boolean writeFilterEnabled;
     boolean readReadyRunnablePending;
     boolean inputClosedSeenErrorOnRead;
     protected volatile boolean active;
@@ -332,14 +332,14 @@ abstract class AbstractKQueueChannel extends AbstractChannel implements UnixChan
         }
     }
 
-    void readFilter(boolean readFilterEnabled) throws IOException {
+    public void readFilter(boolean readFilterEnabled) throws IOException {
         if (this.readFilterEnabled != readFilterEnabled) {
             this.readFilterEnabled = readFilterEnabled;
             evSet(Native.EVFILT_READ, readFilterEnabled ? Native.EV_ADD_CLEAR_ENABLE : Native.EV_DELETE_DISABLE);
         }
     }
 
-    void writeFilter(boolean writeFilterEnabled) throws IOException {
+    public void writeFilter(boolean writeFilterEnabled) throws IOException {
         if (this.writeFilterEnabled != writeFilterEnabled) {
             this.writeFilterEnabled = writeFilterEnabled;
             evSet(Native.EVFILT_WRITE, writeFilterEnabled ? Native.EV_ADD_CLEAR_ENABLE : Native.EV_DELETE_DISABLE);
@@ -426,7 +426,7 @@ abstract class AbstractKQueueChannel extends AbstractChannel implements UnixChan
             return false;
         }
 
-        final void writeReady() {
+        public void writeReady() {
             if (connectPromise != null) {
                 // pending connect which is now complete so handle it.
                 finishConnect();
@@ -586,7 +586,7 @@ abstract class AbstractKQueueChannel extends AbstractChannel implements UnixChan
             }
         }
 
-        private void fulfillConnectPromise(ChannelPromise promise, boolean wasActive) {
+        public void fulfillConnectPromise(ChannelPromise promise, boolean wasActive) {
             if (promise == null) {
                 // Closed via cancellation and the promise has been notified already.
                 return;
@@ -623,7 +623,7 @@ abstract class AbstractKQueueChannel extends AbstractChannel implements UnixChan
             closeIfClosed();
         }
 
-        private void finishConnect() {
+        public void finishConnect() {
             // Note this method is invoked by the event loop only if the connection attempt was
             // neither cancelled nor timed out.
 
@@ -711,7 +711,7 @@ abstract class AbstractKQueueChannel extends AbstractChannel implements UnixChan
         return connected;
     }
 
-    private boolean doConnect0(SocketAddress remote) throws Exception {
+    protected boolean doConnect0(SocketAddress remote) throws Exception {
         boolean success = false;
         try {
             boolean connected = socket.connect(remote);

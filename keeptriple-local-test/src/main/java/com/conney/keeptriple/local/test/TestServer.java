@@ -3,6 +3,7 @@ package com.conney.keeptriple.local.test;
 import com.conney.keeptriple.local.net.NettyServer;
 import com.conney.keeptriple.local.net.codec.ProtoDecoder;
 import com.conney.keeptriple.local.net.codec.ProtoEncoder;
+import com.conney.keeptriple.local.util.ThreadUtils;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -18,7 +19,7 @@ import org.springframework.context.annotation.Import;
 
 import java.util.concurrent.TimeUnit;
 
-@Import({Heartbeat.class, TestData.class, TestDataHandler.class})
+@Import({Heartbeat.class, TestData.class, TestDataHandler.class, HeartbeatHandler.class})
 public class TestServer extends NettyServer implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(TestServer.class);
@@ -39,12 +40,14 @@ public class TestServer extends NettyServer implements CommandLineRunner {
     @Override
     public void accept(ChannelHandlerContext ctx) {
         new Thread(() -> {
-            int size = 0;
+            ThreadUtils.sleepSilent(5000);
+            int size = 5000;
             TestData testData = new TestData();
-            testData.setData(TestData.KB16);
+            testData.setData(TestData.KB1);
             ByteBuf buf = testData.encode();
             for (int i = 0; i < size; i++) {
                 ctx.writeAndFlush(buf.retain().duplicate());
+                //ThreadUtils.sleepSilent(1000);
             }
             logger.info("test completed " + size);
         }).start();
@@ -52,7 +55,7 @@ public class TestServer extends NettyServer implements CommandLineRunner {
 
     @Override
     public IdleStateHandler getIdleStateHandler() {
-        return new IdleStateHandler(9000, 0, 0, TimeUnit.SECONDS);
+        return new IdleStateHandler(20, 0, 0, TimeUnit.SECONDS);
     }
 
     @Override

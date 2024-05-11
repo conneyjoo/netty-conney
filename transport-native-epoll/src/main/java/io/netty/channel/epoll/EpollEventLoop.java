@@ -202,7 +202,7 @@ class EpollEventLoop extends SingleThreadEventLoop {
     /**
      * Register the given epoll with this {@link EventLoop}.
      */
-    void add(AbstractEpollChannel ch) throws IOException {
+    public void add(AbstractEpollChannel ch) throws IOException {
         assert inEventLoop();
         int fd = ch.socket.intValue();
         Native.epollCtlAdd(epollFd.intValue(), fd, ch.flags);

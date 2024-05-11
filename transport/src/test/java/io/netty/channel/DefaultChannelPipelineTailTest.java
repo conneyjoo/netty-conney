@@ -260,7 +260,7 @@ public class DefaultChannelPipelineTailTest {
         }
 
         @Override
-        protected DefaultChannelPipeline newChannelPipeline() {
+        public DefaultChannelPipeline newChannelPipeline() {
             return new MyChannelPipeline(this);
         }
 

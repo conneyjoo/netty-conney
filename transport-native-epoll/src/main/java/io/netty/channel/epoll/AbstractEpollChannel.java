@@ -600,7 +600,7 @@ abstract class AbstractEpollChannel extends AbstractChannel implements UnixChann
             }
         }
 
-        private void fulfillConnectPromise(ChannelPromise promise, boolean wasActive) {
+        public void fulfillConnectPromise(ChannelPromise promise, boolean wasActive) {
             if (promise == null) {
                 // Closed via cancellation and the promise has been notified already.
                 return;
@@ -637,7 +637,7 @@ abstract class AbstractEpollChannel extends AbstractChannel implements UnixChann
             closeIfClosed();
         }
 
-        private void finishConnect() {
+        public void finishConnect() {
             // Note this method is invoked by the event loop only if the connection attempt was
             // neither cancelled nor timed out.
 

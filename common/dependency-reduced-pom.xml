@@ -3,7 +3,7 @@
   <parent>
     <artifactId>netty-parent</artifactId>
     <groupId>io.netty</groupId>
-    <version>4.1.45.Final</version>
+    <version>4.1.45.conney</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>netty-common</artifactId>
@@ -242,7 +242,7 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-dev-tools</artifactId>
-      <version>4.1.45.Final</version>
+      <version>4.1.45.conney</version>
       <scope>test</scope>
       <optional>true</optional>
     </dependency>

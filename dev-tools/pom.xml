@@ -25,7 +25,7 @@
 
   <groupId>io.netty</groupId>
   <artifactId>netty-dev-tools</artifactId>
-  <version>4.1.45.Final</version>
+  <version>4.1.45.conney</version>
 
   <name>Netty/Dev-Tools</name>
 
@@ -52,6 +52,27 @@
   </build>
 
   <scm>
-    <tag>netty-4.1.45.Final</tag>
+    <tag>netty-4.1.45.conney</tag>
   </scm>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>central</id>
+      <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
+      <name>aliyun</name>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>nexus-snapshots</id>
+      <name>XH Nexus Snapshots</name>
+      <url>http://192.168.5.6:8081/repository/sonatype-nexus-backend-snapshots/</url>
+    </snapshotRepository>
+    <repository>
+      <id>nexus-releases</id>
+      <name>XH Nexus Release Repository</name>
+      <url>http://192.168.5.6:8081/repository/sonatype-nexus-backend-release/</url>
+    </repository>
+  </distributionManagement>
 </project>

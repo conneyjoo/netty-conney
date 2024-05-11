@@ -47,8 +47,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
     static final InternalLogger logger = InternalLoggerFactory.getInstance(DefaultChannelPipeline.class);
 
-    private static final String HEAD_NAME = generateName0(HeadContext.class);
-    private static final String TAIL_NAME = generateName0(TailContext.class);
+    public static final String HEAD_NAME = generateName0(HeadContext.class);
+    public static final String TAIL_NAME = generateName0(TailContext.class);
 
     private static final FastThreadLocal<Map<Class<?>, String>> nameCaches =
             new FastThreadLocal<Map<Class<?>, String>>() {
@@ -61,12 +61,12 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     private static final AtomicReferenceFieldUpdater<DefaultChannelPipeline, MessageSizeEstimator.Handle> ESTIMATOR =
             AtomicReferenceFieldUpdater.newUpdater(
                     DefaultChannelPipeline.class, MessageSizeEstimator.Handle.class, "estimatorHandle");
-    final AbstractChannelHandlerContext head;
-    final AbstractChannelHandlerContext tail;
+    public AbstractChannelHandlerContext head;
+    public AbstractChannelHandlerContext tail;
 
-    private final Channel channel;
-    private final ChannelFuture succeededFuture;
-    private final VoidChannelPromise voidPromise;
+    public Channel channel;
+    public ChannelFuture succeededFuture;
+    public VoidChannelPromise voidPromise;
     private final boolean touch = ResourceLeakDetector.isEnabled();
 
     private Map<EventExecutorGroup, EventExecutor> childExecutors;
@@ -89,7 +89,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
      */
     private boolean registered;
 
-    protected DefaultChannelPipeline(Channel channel) {
+    public DefaultChannelPipeline() {
+    }
+
+    public DefaultChannelPipeline(Channel channel) {
         this.channel = ObjectUtil.checkNotNull(channel, "channel");
         succeededFuture = new SucceededChannelFuture(channel, null);
         voidPromise =  new VoidChannelPromise(channel, true);
@@ -112,15 +115,15 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return handle;
     }
 
-    final Object touch(Object msg, AbstractChannelHandlerContext next) {
+    public final Object touch(Object msg, AbstractChannelHandlerContext next) {
         return touch ? ReferenceCountUtil.touch(msg, next) : msg;
     }
 
-    private AbstractChannelHandlerContext newContext(EventExecutorGroup group, String name, ChannelHandler handler) {
+    public AbstractChannelHandlerContext newContext(EventExecutorGroup group, String name, ChannelHandler handler) {
         return new DefaultChannelHandlerContext(this, childExecutor(group), name, handler);
     }
 
-    private EventExecutor childExecutor(EventExecutorGroup group) {
+    public EventExecutor childExecutor(EventExecutorGroup group) {
         if (group == null) {
             return null;
         }
@@ -641,7 +644,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     }
 
-    final void invokeHandlerAddedIfNeeded() {
+    public final void invokeHandlerAddedIfNeeded() {
         assert channel.eventLoop().inEventLoop();
         if (firstRegistration) {
             firstRegistration = false;
@@ -832,7 +835,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
      *
      * See: https://github.com/netty/netty/issues/3156
      */
-    private synchronized void destroy() {
+    public synchronized void destroy() {
         destroyUp(head.next, false);
     }
 

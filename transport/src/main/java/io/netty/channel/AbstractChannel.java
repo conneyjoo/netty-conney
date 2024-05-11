@@ -49,11 +49,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     private final Unsafe unsafe;
     private final DefaultChannelPipeline pipeline;
     private final VoidChannelPromise unsafeVoidPromise = new VoidChannelPromise(this, false);
-    private final CloseFuture closeFuture = new CloseFuture(this);
+    public final CloseFuture closeFuture = new CloseFuture(this);
 
     private volatile SocketAddress localAddress;
     private volatile SocketAddress remoteAddress;
-    private volatile EventLoop eventLoop;
+    protected volatile EventLoop eventLoop;
     private volatile boolean registered;
     private boolean closeInitiated;
     private Throwable initialCloseCause;
@@ -104,7 +104,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     /**
      * Returns a new {@link DefaultChannelPipeline} instance.
      */
-    protected DefaultChannelPipeline newChannelPipeline() {
+    public DefaultChannelPipeline newChannelPipeline() {
         return new DefaultChannelPipeline(this);
     }
 
@@ -416,7 +416,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
      */
     protected abstract class AbstractUnsafe implements Unsafe {
 
-        private volatile ChannelOutboundBuffer outboundBuffer = new ChannelOutboundBuffer(AbstractChannel.this);
+        public volatile ChannelOutboundBuffer outboundBuffer = new ChannelOutboundBuffer(AbstractChannel.this);
         private RecvByteBufAllocator.Handle recvHandle;
         private boolean inFlush0;
         /** true if the channel has never been registered, false otherwise */
@@ -1128,7 +1128,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         DefaultFileRegion.validate(region, position);
     }
 
-    static final class CloseFuture extends DefaultChannelPromise {
+    public static final class CloseFuture extends DefaultChannelPromise {
 
         CloseFuture(AbstractChannel ch) {
             super(ch);
@@ -1154,7 +1154,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             throw new IllegalStateException();
         }
 
-        boolean setClosed() {
+        public boolean setClosed() {
             return super.trySuccess();
         }
     }

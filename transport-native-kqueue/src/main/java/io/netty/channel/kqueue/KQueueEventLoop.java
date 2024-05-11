@@ -42,7 +42,7 @@ import static java.lang.Math.min;
 /**
  * {@link EventLoop} which uses kqueue under the covers. Only works on BSD!
  */
-final class KQueueEventLoop extends SingleThreadEventLoop {
+public final class KQueueEventLoop extends SingleThreadEventLoop {
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(KQueueEventLoop.class);
     private static final AtomicIntegerFieldUpdater<KQueueEventLoop> WAKEN_UP_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(KQueueEventLoop.class, "wakenUp");
@@ -101,7 +101,7 @@ final class KQueueEventLoop extends SingleThreadEventLoop {
         return queueFactory.newTaskQueue(DEFAULT_MAX_PENDING_TASKS);
     }
 
-    void add(AbstractKQueueChannel ch) {
+    public void add(AbstractKQueueChannel ch) {
         assert inEventLoop();
         AbstractKQueueChannel old = channels.put(ch.fd().intValue(), ch);
         // We either expect to have no Channel in the map with the same FD or that the FD of the old Channel is already
@@ -109,7 +109,7 @@ final class KQueueEventLoop extends SingleThreadEventLoop {
         assert old == null || !old.isOpen();
     }
 
-    void evSet(AbstractKQueueChannel ch, short filter, short flags, int fflags) {
+    public void evSet(AbstractKQueueChannel ch, short filter, short flags, int fflags) {
         assert inEventLoop();
         changeList.evSet(ch, filter, flags, fflags);
     }

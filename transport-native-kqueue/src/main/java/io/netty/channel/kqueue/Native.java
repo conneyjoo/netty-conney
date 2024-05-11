@@ -47,7 +47,7 @@ import static io.netty.channel.unix.Errors.newIOException;
  * Native helper methods
  * <p><strong>Internal usage only!</strong>
  */
-final class Native {
+public final class Native {
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(Native.class);
 
     static {
@@ -62,28 +62,28 @@ final class Native {
         Socket.initialize();
     }
 
-    static final short EV_ADD = evAdd();
-    static final short EV_ENABLE = evEnable();
-    static final short EV_DISABLE = evDisable();
-    static final short EV_DELETE = evDelete();
-    static final short EV_CLEAR = evClear();
-    static final short EV_ERROR = evError();
-    static final short EV_EOF = evEOF();
+    public static final short EV_ADD = evAdd();
+    public static final short EV_ENABLE = evEnable();
+    public static final short EV_DISABLE = evDisable();
+    public static final short EV_DELETE = evDelete();
+    public static final short EV_CLEAR = evClear();
+    public static final short EV_ERROR = evError();
+    public static final short EV_EOF = evEOF();
 
-    static final int NOTE_READCLOSED = noteReadClosed();
-    static final int NOTE_CONNRESET = noteConnReset();
-    static final int NOTE_DISCONNECTED = noteDisconnected();
+    public static final int NOTE_READCLOSED = noteReadClosed();
+    public static final int NOTE_CONNRESET = noteConnReset();
+    public static final int NOTE_DISCONNECTED = noteDisconnected();
 
-    static final int NOTE_RDHUP = NOTE_READCLOSED | NOTE_CONNRESET | NOTE_DISCONNECTED;
+    public static final int NOTE_RDHUP = NOTE_READCLOSED | NOTE_CONNRESET | NOTE_DISCONNECTED;
 
     // Commonly used combinations of EV defines
-    static final short EV_ADD_CLEAR_ENABLE = (short) (EV_ADD | EV_CLEAR | EV_ENABLE);
-    static final short EV_DELETE_DISABLE = (short) (EV_DELETE | EV_DISABLE);
+    public static final short EV_ADD_CLEAR_ENABLE = (short) (EV_ADD | EV_CLEAR | EV_ENABLE);
+    public static final short EV_DELETE_DISABLE = (short) (EV_DELETE | EV_DISABLE);
 
-    static final short EVFILT_READ = evfiltRead();
-    static final short EVFILT_WRITE = evfiltWrite();
-    static final short EVFILT_USER = evfiltUser();
-    static final short EVFILT_SOCK = evfiltSock();
+    public static final short EVFILT_READ = evfiltRead();
+    public static final short EVFILT_WRITE = evfiltWrite();
+    public static final short EVFILT_USER = evfiltUser();
+    public static final short EVFILT_SOCK = evfiltSock();
 
     static FileDescriptor newKQueue() {
         return new FileDescriptor(kqueueCreate());

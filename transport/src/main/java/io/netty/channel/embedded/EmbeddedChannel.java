@@ -241,7 +241,7 @@ public class EmbeddedChannel extends AbstractChannel {
     }
 
     @Override
-    protected final DefaultChannelPipeline newChannelPipeline() {
+    public final DefaultChannelPipeline newChannelPipeline() {
         return new EmbeddedChannelPipeline(this);
     }
 

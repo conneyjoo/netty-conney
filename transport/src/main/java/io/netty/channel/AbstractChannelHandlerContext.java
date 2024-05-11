@@ -56,11 +56,11 @@ import static io.netty.channel.ChannelHandlerMask.MASK_USER_EVENT_TRIGGERED;
 import static io.netty.channel.ChannelHandlerMask.MASK_WRITE;
 import static io.netty.channel.ChannelHandlerMask.mask;
 
-abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, ResourceLeakHint {
+public abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, ResourceLeakHint {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(AbstractChannelHandlerContext.class);
-    volatile AbstractChannelHandlerContext next;
-    volatile AbstractChannelHandlerContext prev;
+    public volatile AbstractChannelHandlerContext next;
+    public volatile AbstractChannelHandlerContext prev;
 
     private static final AtomicIntegerFieldUpdater<AbstractChannelHandlerContext> HANDLER_STATE_UPDATER =
             AtomicIntegerFieldUpdater.newUpdater(AbstractChannelHandlerContext.class, "handlerState");
@@ -83,14 +83,14 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
      */
     private static final int INIT = 0;
 
-    private final DefaultChannelPipeline pipeline;
+    public final DefaultChannelPipeline pipeline;
     private final String name;
     private final boolean ordered;
-    private final int executionMask;
+    public final int executionMask;
 
     // Will be set to null if no child executor should be used, otherwise it will be set to the
     // child executor.
-    final EventExecutor executor;
+    public final EventExecutor executor;
     private ChannelFuture succeededFuture;
 
     // Lazily instantiated tasks used to trigger events to a handler with different executor.
@@ -99,7 +99,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
 
     private volatile int handlerState = INIT;
 
-    AbstractChannelHandlerContext(DefaultChannelPipeline pipeline, EventExecutor executor,
+    public AbstractChannelHandlerContext(DefaultChannelPipeline pipeline, EventExecutor executor,
                                   String name, Class<? extends ChannelHandler> handlerClass) {
         this.name = ObjectUtil.checkNotNull(name, "name");
         this.pipeline = pipeline;
@@ -338,7 +338,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
     }
 
-    private void invokeUserEventTriggered(Object event) {
+    public void invokeUserEventTriggered(Object event) {
         if (invokeHandler()) {
             try {
                 ((ChannelInboundHandler) handler()).userEventTriggered(this, event);
@@ -702,7 +702,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         return promise;
     }
 
-    void invokeWrite(Object msg, ChannelPromise promise) {
+    public void invokeWrite(Object msg, ChannelPromise promise) {
         if (invokeHandler()) {
             invokeWrite0(msg, promise);
         } else {
@@ -757,7 +757,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         return promise;
     }
 
-    void invokeWriteAndFlush(Object msg, ChannelPromise promise) {
+    public void invokeWriteAndFlush(Object msg, ChannelPromise promise) {
         if (invokeHandler()) {
             invokeWrite0(msg, promise);
             invokeFlush0();
@@ -766,7 +766,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
     }
 
-    private void write(Object msg, boolean flush, ChannelPromise promise) {
+    public void write(Object msg, boolean flush, ChannelPromise promise) {
         ObjectUtil.checkNotNull(msg, "msg");
         try {
             if (isNotValidPromise(promise, true)) {
@@ -869,7 +869,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         return new FailedChannelFuture(channel(), executor(), cause);
     }
 
-    private boolean isNotValidPromise(ChannelPromise promise, boolean allowVoidPromise) {
+    public boolean isNotValidPromise(ChannelPromise promise, boolean allowVoidPromise) {
         ObjectUtil.checkNotNull(promise, "promise");
 
         if (promise.isDone()) {
@@ -904,7 +904,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         return false;
     }
 
-    private AbstractChannelHandlerContext findContextInbound(int mask) {
+    public AbstractChannelHandlerContext findContextInbound(int mask) {
         AbstractChannelHandlerContext ctx = this;
         do {
             ctx = ctx.next;
@@ -912,7 +912,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         return ctx;
     }
 
-    private AbstractChannelHandlerContext findContextOutbound(int mask) {
+    public AbstractChannelHandlerContext findContextOutbound(int mask) {
         AbstractChannelHandlerContext ctx = this;
         do {
             ctx = ctx.prev;
@@ -929,7 +929,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         handlerState = REMOVE_COMPLETE;
     }
 
-    final boolean setAddComplete() {
+    public final boolean setAddComplete() {
         for (;;) {
             int oldState = handlerState;
             if (oldState == REMOVE_COMPLETE) {
@@ -998,7 +998,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         return channel().hasAttr(key);
     }
 
-    private static boolean safeExecute(EventExecutor executor, Runnable runnable,
+    public static boolean safeExecute(EventExecutor executor, Runnable runnable,
             ChannelPromise promise, Object msg, boolean lazy) {
         try {
             if (lazy && executor instanceof AbstractEventExecutor) {
@@ -1029,7 +1029,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         return StringUtil.simpleClassName(ChannelHandlerContext.class) + '(' + name + ", " + channel() + ')';
     }
 
-    static final class WriteTask implements Runnable {
+    public static final class WriteTask implements Runnable {
         private static final ObjectPool<WriteTask> RECYCLER = ObjectPool.newPool(new ObjectCreator<WriteTask>() {
             @Override
             public WriteTask newObject(Handle<WriteTask> handle) {
@@ -1037,7 +1037,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
             }
         });
 
-        static WriteTask newInstance(AbstractChannelHandlerContext ctx,
+        public static WriteTask newInstance(AbstractChannelHandlerContext ctx,
                 Object msg, ChannelPromise promise, boolean flush) {
             WriteTask task = RECYCLER.get();
             init(task, ctx, msg, promise, flush);
@@ -1093,7 +1093,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
             }
         }
 
-        void cancel() {
+        public void cancel() {
             try {
                 decrementPendingOutboundBytes();
             } finally {

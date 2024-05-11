@@ -6,6 +6,8 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -36,12 +38,12 @@ public abstract class NettyServer extends NettyInitializer {
     public void start(int port) {
         if (running.compareAndSet(false, true)) {
             String name = getName();
-            EventLoopGroup bossGroup = getNettyContext().getEventLoopGroup(bossThreadNum, name + "-accept");
-            EventLoopGroup workerGroup = getNettyContext().getEventLoopGroup(workThreadNum, name);
+            EventLoopGroup bossGroup = new NioEventLoopGroup();
+            EventLoopGroup workerGroup = new NioEventLoopGroup();
 
             bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup)
-                    .channel(getNettyContext().getServerChannelClass())
+                    .channel(NioServerSocketChannel.class)
                     .childHandler(this);
 
             initChannel(bootstrap);

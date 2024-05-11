@@ -51,7 +51,7 @@ import static java.lang.Math.min;
  * </ul>
  * </p>
  */
-public final class ChannelOutboundBuffer {
+public class ChannelOutboundBuffer {
     // Assuming a 64-bit JVM:
     //  - 16 bytes object header
     //  - 6 reference fields
@@ -71,25 +71,25 @@ public final class ChannelOutboundBuffer {
         }
     };
 
-    private final Channel channel;
+    public final Channel channel;
 
     // Entry(flushedEntry) --> ... Entry(unflushedEntry) --> ... Entry(tailEntry)
     //
     // The Entry that is the first in the linked-list structure that was flushed
-    private Entry flushedEntry;
+    public Entry flushedEntry;
     // The Entry which is the first unflushed in the linked-list structure
-    private Entry unflushedEntry;
+    public Entry unflushedEntry;
     // The Entry which represents the tail of the buffer
-    private Entry tailEntry;
+    public Entry tailEntry;
     // The number of flushed entries that are not written yet
-    private int flushed;
+    public int flushed;
 
     private int nioBufferCount;
     private long nioBufferSize;
 
-    private boolean inFail;
+    public boolean inFail;
 
-    private static final AtomicLongFieldUpdater<ChannelOutboundBuffer> TOTAL_PENDING_SIZE_UPDATER =
+    public static final AtomicLongFieldUpdater<ChannelOutboundBuffer> TOTAL_PENDING_SIZE_UPDATER =
             AtomicLongFieldUpdater.newUpdater(ChannelOutboundBuffer.class, "totalPendingSize");
 
     @SuppressWarnings("UnusedDeclaration")
@@ -101,9 +101,9 @@ public final class ChannelOutboundBuffer {
     @SuppressWarnings("UnusedDeclaration")
     private volatile int unwritable;
 
-    private volatile Runnable fireChannelWritabilityChangedTask;
+    public volatile Runnable fireChannelWritabilityChangedTask;
 
-    ChannelOutboundBuffer(AbstractChannel channel) {
+    public ChannelOutboundBuffer(AbstractChannel channel) {
         this.channel = channel;
     }
 
@@ -363,7 +363,7 @@ public final class ChannelOutboundBuffer {
 
     // Clear all ByteBuffer from the array so these can be GC'ed.
     // See https://github.com/netty/netty/issues/3837
-    private void clearNioBuffers() {
+    public void clearNioBuffers() {
         int count = nioBufferCount;
         if (count > 0) {
             nioBufferCount = 0;
@@ -611,7 +611,7 @@ public final class ChannelOutboundBuffer {
         }
     }
 
-    private void fireChannelWritabilityChanged(boolean invokeLater) {
+    public void fireChannelWritabilityChanged(boolean invokeLater) {
         final ChannelPipeline pipeline = channel.pipeline();
         if (invokeLater) {
             Runnable task = fireChannelWritabilityChangedTask;
@@ -666,7 +666,7 @@ public final class ChannelOutboundBuffer {
         }
     }
 
-    void close(final Throwable cause, final boolean allowChannelOpen) {
+    public void close(final Throwable cause, final boolean allowChannelOpen) {
         if (inFail) {
             channel.eventLoop().execute(new Runnable() {
                 @Override
@@ -717,7 +717,7 @@ public final class ChannelOutboundBuffer {
         PromiseNotificationUtil.trySuccess(promise, null, promise instanceof VoidChannelPromise ? null : logger);
     }
 
-    private static void safeFail(ChannelPromise promise, Throwable cause) {
+    public static void safeFail(ChannelPromise promise, Throwable cause) {
         // Only log if the given promise is not of type VoidChannelPromise as tryFailure(...) is expected to return
         // false.
         PromiseNotificationUtil.tryFailure(promise, cause, promise instanceof VoidChannelPromise ? null : logger);
@@ -797,7 +797,7 @@ public final class ChannelOutboundBuffer {
         boolean processMessage(Object msg) throws Exception;
     }
 
-    static final class Entry {
+    public static final class Entry {
         private static final ObjectPool<Entry> RECYCLER = ObjectPool.newPool(new ObjectCreator<Entry>() {
             @Override
             public Entry newObject(Handle<Entry> handle) {
@@ -806,16 +806,16 @@ public final class ChannelOutboundBuffer {
         });
 
         private final Handle<Entry> handle;
-        Entry next;
-        Object msg;
-        ByteBuffer[] bufs;
-        ByteBuffer buf;
-        ChannelPromise promise;
-        long progress;
-        long total;
-        int pendingSize;
-        int count = -1;
-        boolean cancelled;
+        public Entry next;
+        public Object msg;
+        public ByteBuffer[] bufs;
+        public ByteBuffer buf;
+        public ChannelPromise promise;
+        public long progress;
+        public long total;
+        public int pendingSize;
+        public int count = -1;
+        public boolean cancelled;
 
         private Entry(Handle<Entry> handle) {
             this.handle = handle;
@@ -863,7 +863,7 @@ public final class ChannelOutboundBuffer {
             handle.recycle(this);
         }
 
-        Entry recycleAndGetNext() {
+        public Entry recycleAndGetNext() {
             Entry next = this.next;
             recycle();
             return next;
