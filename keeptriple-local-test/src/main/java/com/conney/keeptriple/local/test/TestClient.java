@@ -59,8 +59,8 @@ public class TestClient extends NettyClient implements CommandLineRunner {
         bs = new Bootstrap();
 
         bs.group(bossGroup)
-                .channel(DuplexKQueueSocketChannel.class)
-                //.channel(KQueueSocketChannel.class)
+                //.channel(DuplexKQueueSocketChannel.class)
+                .channel(KQueueSocketChannel.class)
                 //.option(ChannelOption.MAX_MESSAGES_PER_READ, 16)
                 //.option(ChannelOption.SO_RCVBUF, 1024 * 8)
                 .handler(this)
