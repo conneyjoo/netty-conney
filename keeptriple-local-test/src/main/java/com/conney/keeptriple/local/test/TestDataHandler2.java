@@ -9,14 +9,12 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @ProtoHandler
-public class TestDataHandler extends AbstractHandler<TestData> {
+public class TestDataHandler2 extends AbstractHandler<TestData> {
 
-    private static final Logger logger = LoggerFactory.getLogger(TestDataHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestDataHandler2.class);
 
     private AtomicInteger i = new AtomicInteger();
 
@@ -25,7 +23,7 @@ public class TestDataHandler extends AbstractHandler<TestData> {
     @Override
     public void afterPropertiesSet() {
         //Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> logger.info("i = {}", i), 1, 30, TimeUnit.SECONDS);
-        for (int i = 1; i <= 5000000; i++) {
+        for (int i = 1; i <= 1; i++) {
             nums.add(i);
         }
     }
@@ -33,7 +31,7 @@ public class TestDataHandler extends AbstractHandler<TestData> {
     @Override
     public void handle(ChannelHandlerContext ctx, TestData testData) {
         i.incrementAndGet();
-        logger.info("client data {}", i.get());
+        logger.info("server data {}", i.get());
         Collections.shuffle(nums);
     }
 }

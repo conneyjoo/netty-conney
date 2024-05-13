@@ -95,7 +95,7 @@ public abstract class AbstractChannelHandlerContext implements ChannelHandlerCon
 
     // Lazily instantiated tasks used to trigger events to a handler with different executor.
     // There is no need to make this volatile as at worse it will just create a few more instances then needed.
-    private Tasks invokeTasks;
+    public Tasks invokeTasks;
 
     private volatile int handlerState = INIT;
 
@@ -222,7 +222,7 @@ public abstract class AbstractChannelHandlerContext implements ChannelHandlerCon
         }
     }
 
-    private void invokeChannelActive() {
+    public void invokeChannelActive() {
         if (invokeHandler()) {
             try {
                 ((ChannelInboundHandler) handler()).channelActive(this);
@@ -254,7 +254,7 @@ public abstract class AbstractChannelHandlerContext implements ChannelHandlerCon
         }
     }
 
-    private void invokeChannelInactive() {
+    public void invokeChannelInactive() {
         if (invokeHandler()) {
             try {
                 ((ChannelInboundHandler) handler()).channelInactive(this);
@@ -371,7 +371,7 @@ public abstract class AbstractChannelHandlerContext implements ChannelHandlerCon
         }
     }
 
-    private void invokeChannelRead(Object msg) {
+    public void invokeChannelRead(Object msg) {
         if (invokeHandler()) {
             try {
                 ((ChannelInboundHandler) handler()).channelRead(this, msg);
@@ -402,7 +402,7 @@ public abstract class AbstractChannelHandlerContext implements ChannelHandlerCon
         }
     }
 
-    private void invokeChannelReadComplete() {
+    public void invokeChannelReadComplete() {
         if (invokeHandler()) {
             try {
                 ((ChannelInboundHandler) handler()).channelReadComplete(this);
@@ -433,7 +433,7 @@ public abstract class AbstractChannelHandlerContext implements ChannelHandlerCon
         }
     }
 
-    private void invokeChannelWritabilityChanged() {
+    public void invokeChannelWritabilityChanged() {
         if (invokeHandler()) {
             try {
                 ((ChannelInboundHandler) handler()).channelWritabilityChanged(this);
@@ -1116,34 +1116,34 @@ public abstract class AbstractChannelHandlerContext implements ChannelHandlerCon
         }
     }
 
-    private static final class Tasks {
-        private final AbstractChannelHandlerContext next;
-        private final Runnable invokeChannelReadCompleteTask = new Runnable() {
+    public static final class Tasks {
+        public final AbstractChannelHandlerContext next;
+        public final Runnable invokeChannelReadCompleteTask = new Runnable() {
             @Override
             public void run() {
                 next.invokeChannelReadComplete();
             }
         };
-        private final Runnable invokeReadTask = new Runnable() {
+        public final Runnable invokeReadTask = new Runnable() {
             @Override
             public void run() {
                 next.invokeRead();
             }
         };
-        private final Runnable invokeChannelWritableStateChangedTask = new Runnable() {
+        public final Runnable invokeChannelWritableStateChangedTask = new Runnable() {
             @Override
             public void run() {
                 next.invokeChannelWritabilityChanged();
             }
         };
-        private final Runnable invokeFlushTask = new Runnable() {
+        public final Runnable invokeFlushTask = new Runnable() {
             @Override
             public void run() {
                 next.invokeFlush();
             }
         };
 
-        Tasks(AbstractChannelHandlerContext next) {
+        public Tasks(AbstractChannelHandlerContext next) {
             this.next = next;
         }
     }

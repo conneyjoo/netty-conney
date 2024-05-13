@@ -59,8 +59,8 @@ public class TestClient extends NettyClient implements CommandLineRunner {
         bs = new Bootstrap();
 
         bs.group(bossGroup)
-                //.channel(DuplexKQueueSocketChannel.class)
-                .channel(KQueueSocketChannel.class)
+                .channel(DuplexKQueueSocketChannel.class)
+                //.channel(KQueueSocketChannel.class)
                 //.option(ChannelOption.MAX_MESSAGES_PER_READ, 16)
                 //.option(ChannelOption.SO_RCVBUF, 1024 * 8)
                 .handler(this)
@@ -81,7 +81,7 @@ public class TestClient extends NettyClient implements CommandLineRunner {
 
         new Thread(() -> {
             ThreadUtils.sleepSilent(5000);
-            int size = 0;
+            int size = 50000;
             TestData testData = new TestData();
             testData.setData(TestData.KB1);
             ByteBuf buf = testData.encode();

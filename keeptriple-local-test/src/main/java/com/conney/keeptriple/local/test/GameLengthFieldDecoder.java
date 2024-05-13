@@ -26,7 +26,7 @@ public class GameLengthFieldDecoder extends ByteToMessageDecoder {
     private long bytesToDiscard;
 
     public GameLengthFieldDecoder() {
-        this(Integer.MAX_VALUE, GameProto.HEADER_FF_LENGTH);
+        this(1024 * 1024 * 8, GameProto.HEADER_FF_LENGTH);
     }
 
     /**

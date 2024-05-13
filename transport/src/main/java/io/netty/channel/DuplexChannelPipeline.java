@@ -46,6 +46,90 @@ public class DuplexChannelPipeline extends DefaultChannelPipeline {
         return new DuplexChannelHandlerContext(this, childExecutor(group), name, handler);
     }
 
+    @Override
+    public ChannelPipeline fireChannelActive() {
+        final DuplexHeadContext next = ((DuplexHeadContext) head);
+        EventExecutor executor = next.readExecutor();
+        if (executor.inEventLoop()) {
+            next.invokeChannelActive();
+        } else {
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    next.invokeChannelActive();
+                }
+            });
+        }
+        return this;
+    }
+
+    @Override
+    public ChannelPipeline fireChannelInactive() {
+        final DuplexHeadContext next = ((DuplexHeadContext) head);
+        EventExecutor executor = next.readExecutor();
+        if (executor.inEventLoop()) {
+            next.invokeChannelInactive();
+        } else {
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    next.invokeChannelInactive();
+                }
+            });
+        }
+        return this;
+    }
+
+    @Override
+    public ChannelPipeline fireChannelRead(Object msg) {
+        final DuplexHeadContext next = ((DuplexHeadContext) head);
+        final Object m = touch(ObjectUtil.checkNotNull(msg, "msg"), next);
+        EventExecutor executor = next.readExecutor();
+        if (executor.inEventLoop()) {
+            next.invokeChannelRead(m);
+        } else {
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    next.invokeChannelRead(m);
+                }
+            });
+        }
+        return this;
+    }
+
+    @Override
+    public ChannelPipeline fireChannelReadComplete() {
+        final DuplexHeadContext next = ((DuplexHeadContext) head);
+        EventExecutor executor = next.readExecutor();
+        if (executor.inEventLoop()) {
+            next.invokeChannelReadComplete();
+        } else {
+            AbstractChannelHandlerContext.Tasks tasks = next.invokeTasks;
+            if (tasks == null) {
+                next.invokeTasks = tasks = new AbstractChannelHandlerContext.Tasks(next);
+            }
+            executor.execute(tasks.invokeChannelReadCompleteTask);
+        }
+        return this;
+    }
+
+    @Override
+    public ChannelPipeline fireChannelWritabilityChanged() {
+        final DuplexHeadContext next = ((DuplexHeadContext) head);
+        EventExecutor executor = next.writeExecutor();
+        if (executor.inEventLoop()) {
+            next.invokeChannelWritabilityChanged();
+        } else {
+            AbstractChannelHandlerContext.Tasks tasks = next.invokeTasks;
+            if (tasks == null) {
+                next.invokeTasks = tasks = new AbstractChannelHandlerContext.Tasks(next);
+            }
+            executor.execute(tasks.invokeChannelWritableStateChangedTask);
+        }
+        return this;
+    }
+
     class DuplexChannelHandlerContext extends AbstractChannelHandlerContext {
 
         public static final int MASK_WRITE_TYPE = MASK_WRITE | MASK_FLUSH | MASK_CHANNEL_WRITABILITY_CHANGED;
@@ -73,6 +157,10 @@ public class DuplexChannelPipeline extends DefaultChannelPipeline {
 
         public EventExecutor writeExecutor() {
             return ((DuplexSocketChannel) channel()).writeEventLoop();
+        }
+
+        public EventExecutor readExecutor() {
+            return super.executor();
         }
 
         @Override

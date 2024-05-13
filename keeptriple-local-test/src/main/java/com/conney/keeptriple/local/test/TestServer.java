@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Import;
 
 import java.util.concurrent.TimeUnit;
 
-@Import({Heartbeat.class, TestData.class, TestDataHandler.class, HeartbeatHandler.class})
+@Import({Heartbeat.class, TestData.class, TestDataHandler2.class, HeartbeatHandler.class})
 public class TestServer extends NettyServer implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(TestServer.class);
@@ -55,7 +55,7 @@ public class TestServer extends NettyServer implements CommandLineRunner {
 
     @Override
     public IdleStateHandler getIdleStateHandler() {
-        return new IdleStateHandler(20, 0, 0, TimeUnit.SECONDS);
+        return new IdleStateHandler(2000, 0, 0, TimeUnit.SECONDS);
     }
 
     @Override

@@ -894,19 +894,19 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     @Override
-    public final ChannelPipeline fireChannelActive() {
+    public ChannelPipeline fireChannelActive() {
         AbstractChannelHandlerContext.invokeChannelActive(head);
         return this;
     }
 
     @Override
-    public final ChannelPipeline fireChannelInactive() {
+    public ChannelPipeline fireChannelInactive() {
         AbstractChannelHandlerContext.invokeChannelInactive(head);
         return this;
     }
 
     @Override
-    public final ChannelPipeline fireExceptionCaught(Throwable cause) {
+    public ChannelPipeline fireExceptionCaught(Throwable cause) {
         AbstractChannelHandlerContext.invokeExceptionCaught(head, cause);
         return this;
     }
@@ -918,19 +918,19 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     @Override
-    public final ChannelPipeline fireChannelRead(Object msg) {
+    public ChannelPipeline fireChannelRead(Object msg) {
         AbstractChannelHandlerContext.invokeChannelRead(head, msg);
         return this;
     }
 
     @Override
-    public final ChannelPipeline fireChannelReadComplete() {
+    public ChannelPipeline fireChannelReadComplete() {
         AbstractChannelHandlerContext.invokeChannelReadComplete(head);
         return this;
     }
 
     @Override
-    public final ChannelPipeline fireChannelWritabilityChanged() {
+    public ChannelPipeline fireChannelWritabilityChanged() {
         AbstractChannelHandlerContext.invokeChannelWritabilityChanged(head);
         return this;
     }

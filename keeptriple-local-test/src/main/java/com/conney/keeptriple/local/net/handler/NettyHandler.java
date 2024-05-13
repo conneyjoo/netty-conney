@@ -65,11 +65,6 @@ public class NettyHandler extends SimpleChannelInboundHandler<Proto> {
 	}
 
 	@Override
-	public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-		ctx.flush();
-	}
-
-	@Override
 	public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
 		if (evt instanceof IdleStateEvent) {
 			IdleState state = ((IdleStateEvent) evt).state();
