@@ -48,7 +48,7 @@ public class DuplexChannelPipeline extends DefaultChannelPipeline {
 
     @Override
     public ChannelPipeline fireChannelActive() {
-        final DuplexHeadContext next = ((DuplexHeadContext) head);
+        final DuplexHeadContext next = (DuplexHeadContext) head;
         EventExecutor executor = next.readExecutor();
         if (executor.inEventLoop()) {
             next.invokeChannelActive();
@@ -65,7 +65,7 @@ public class DuplexChannelPipeline extends DefaultChannelPipeline {
 
     @Override
     public ChannelPipeline fireChannelInactive() {
-        final DuplexHeadContext next = ((DuplexHeadContext) head);
+        final DuplexHeadContext next = (DuplexHeadContext) head;
         EventExecutor executor = next.readExecutor();
         if (executor.inEventLoop()) {
             next.invokeChannelInactive();
@@ -82,7 +82,7 @@ public class DuplexChannelPipeline extends DefaultChannelPipeline {
 
     @Override
     public ChannelPipeline fireChannelRead(Object msg) {
-        final DuplexHeadContext next = ((DuplexHeadContext) head);
+        final DuplexHeadContext next = (DuplexHeadContext) head;
         final Object m = touch(ObjectUtil.checkNotNull(msg, "msg"), next);
         EventExecutor executor = next.readExecutor();
         if (executor.inEventLoop()) {
@@ -100,7 +100,7 @@ public class DuplexChannelPipeline extends DefaultChannelPipeline {
 
     @Override
     public ChannelPipeline fireChannelReadComplete() {
-        final DuplexHeadContext next = ((DuplexHeadContext) head);
+        final DuplexHeadContext next = (DuplexHeadContext) head;
         EventExecutor executor = next.readExecutor();
         if (executor.inEventLoop()) {
             next.invokeChannelReadComplete();
@@ -116,7 +116,7 @@ public class DuplexChannelPipeline extends DefaultChannelPipeline {
 
     @Override
     public ChannelPipeline fireChannelWritabilityChanged() {
-        final DuplexHeadContext next = ((DuplexHeadContext) head);
+        final DuplexHeadContext next = (DuplexHeadContext) head;
         EventExecutor executor = next.writeExecutor();
         if (executor.inEventLoop()) {
             next.invokeChannelWritabilityChanged();
