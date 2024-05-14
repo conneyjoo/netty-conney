@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Netty Project
+ * Copyright 2014 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -13,15 +13,13 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package io.netty.channel.kqueue;
+package io.netty.channel.epoll;
 
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.DefaultChannelPipeline;
 import io.netty.channel.DefaultSelectStrategyFactory;
-import io.netty.channel.DuplexChannelOutboundBuffer;
 import io.netty.channel.DuplexChannelPipeline;
 import io.netty.channel.EventLoop;
-import io.netty.channel.SingleThreadEventLoop;
 import io.netty.channel.socket.DuplexSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.GlobalEventExecutor;
@@ -31,25 +29,25 @@ import io.netty.util.concurrent.ThreadPerTaskExecutor;
 import java.io.IOException;
 import java.util.concurrent.Executor;
 
-public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements DuplexSocketChannel {
+public final class DuplexEpollSocketChannel extends EpollSocketChannel implements DuplexSocketChannel {
 
-    private KQueueEventLoop writeEventLoop;
+    private EpollEventLoop writeEventLoop;
 
     public DefaultChannelPipeline newChannelPipeline() {
         return new DuplexChannelPipeline(this);
     }
 
-    public KQueueEventLoop peelWriteEventLoop() {
-        KQueueEventLoop eventLoop = (KQueueEventLoop) eventLoop();
-        eventLoop.evSet(this, Native.EVFILT_WRITE, Native.EV_DELETE_DISABLE, 0);
-        return createWriteEventLoop(eventLoop);
+    public EpollEventLoop peelWriteEventLoop() {
+        EpollEventLoop eventLoop = (EpollEventLoop) eventLoop();
+        //eventLoop.evSet(this, Native.EVFILT_WRITE, Native.EV_DELETE_DISABLE, 0);
+        return createKQueueEventLoop(eventLoop);
     }
 
-    public KQueueEventLoop createWriteEventLoop(SingleThreadEventLoop eventLoop) {
+    public EpollEventLoop createKQueueEventLoop(EpollEventLoop eventLoop) {
         try {
             String poolName = eventLoop.thread.getName() + "-write";
             ThreadPerTaskExecutor executor = new ThreadPerTaskExecutor(new DefaultThreadFactory(poolName));
-            return new KQueueEventLoop(eventLoop.parent(), executor, 0,
+            return new EpollEventLoop(eventLoop.parent(), executor, 0,
                     DefaultSelectStrategyFactory.INSTANCE.newSelectStrategy(),
                     RejectedExecutionHandlers.reject(),
                     null);
@@ -58,41 +56,26 @@ public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements Du
         }
     }
 
-    public void doRegisterWriteEventLoop(KQueueEventLoop writeEventLoop) throws Exception {
+    public void doRegisterWriteEventLoop(EpollEventLoop writeEventLoop) throws Exception {
         writeEventLoop.add(this);
         this.writeEventLoop = writeEventLoop;
     }
 
     public void writeFilter(boolean writeFilterEnabled) throws IOException {
-        if (writeEventLoop == null || eventLoop.inEventLoop()) {
-            super.writeFilter(writeFilterEnabled);
-        } else if (writeEventLoop.inEventLoop()) {
-            if (this.writeFilterEnabled != writeFilterEnabled) {
-                this.writeFilterEnabled = writeFilterEnabled;
-                if (isRegistered()) {
-                    short flags = writeFilterEnabled ? Native.EV_ADD_CLEAR_ENABLE : Native.EV_DELETE_DISABLE;
-                    wevSet0(Native.EVFILT_WRITE, flags, 0);
-                }
-            }
-        }
     }
 
     private void wevSet0(short filter, short flags, int fflags) {
         if (isOpen()) {
-            ((KQueueEventLoop) writeEventLoop()).evSet(this, filter, flags, fflags);
+           // ((EpollEventLoop) writeEventLoop()).evSet(this, filter, flags, fflags);
         }
     }
 
     @Override
-    protected AbstractKQueueUnsafe newUnsafe() {
-        return new DuplexKQueueSocketChannelUnsafe();
+    protected AbstractEpollUnsafe newUnsafe() {
+        return new DuplexEpollSocketChannelUnsafe();
     }
 
-    private final class DuplexKQueueSocketChannelUnsafe extends KQueueStreamUnsafe {
-
-        DuplexKQueueSocketChannelUnsafe() {
-            this.outboundBuffer = new DuplexChannelOutboundBuffer(DuplexKQueueSocketChannel.this);
-        }
+    private final class DuplexEpollSocketChannelUnsafe extends EpollStreamUnsafe {
 
         @Override
         protected Executor prepareToClose() {
@@ -104,8 +87,8 @@ public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements Du
                     // because we try to read or write until the actual close happens which may be later due
                     // SO_LINGER handling.
                     // See https://github.com/netty/netty/issues/4449
-                    ((KQueueEventLoop) eventLoop()).remove(DuplexKQueueSocketChannel.this);
-                    ((KQueueEventLoop) writeEventLoop()).remove(DuplexKQueueSocketChannel.this);
+                    ((EpollEventLoop) eventLoop()).remove(DuplexEpollSocketChannel.this);
+                    ((EpollEventLoop) writeEventLoop()).remove(DuplexEpollSocketChannel.this);
                     return GlobalEventExecutor.INSTANCE;
                 }
             } catch (Throwable ignore) {
@@ -153,7 +136,7 @@ public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements Du
         }
 
         public void prepareWriteEventLoop(ChannelPromise promise) {
-            final KQueueEventLoop writeEventLoop = peelWriteEventLoop();
+            final EpollEventLoop writeEventLoop = peelWriteEventLoop();
             writeEventLoop.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -169,6 +152,7 @@ public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements Du
         }
     }
 
+    @Override
     public EventLoop writeEventLoop() {
         return writeEventLoop;
     }
