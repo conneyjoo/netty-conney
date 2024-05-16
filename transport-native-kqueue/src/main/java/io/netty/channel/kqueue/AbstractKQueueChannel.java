@@ -66,7 +66,7 @@ public abstract class AbstractKQueueChannel extends AbstractChannel implements U
 
     final BsdSocket socket;
     private boolean readFilterEnabled;
-    public boolean writeFilterEnabled;
+    private boolean writeFilterEnabled;
     boolean readReadyRunnablePending;
     boolean inputClosedSeenErrorOnRead;
     protected volatile boolean active;

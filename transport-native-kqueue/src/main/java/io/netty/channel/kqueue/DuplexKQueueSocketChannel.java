@@ -33,6 +33,8 @@ import java.util.concurrent.Executor;
 
 public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements DuplexSocketChannel {
 
+    protected boolean writeFilterEnabled2;
+
     private KQueueEventLoop writeEventLoop;
 
     public DefaultChannelPipeline newChannelPipeline() {
@@ -67,13 +69,20 @@ public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements Du
         if (writeEventLoop == null || eventLoop.inEventLoop()) {
             super.writeFilter(writeFilterEnabled);
         } else if (writeEventLoop.inEventLoop()) {
-            if (this.writeFilterEnabled != writeFilterEnabled) {
-                this.writeFilterEnabled = writeFilterEnabled;
-                if (isRegistered()) {
-                    short flags = writeFilterEnabled ? Native.EV_ADD_CLEAR_ENABLE : Native.EV_DELETE_DISABLE;
-                    wevSet0(Native.EVFILT_WRITE, flags, 0);
-                }
-            }
+            writeFilter2(writeFilterEnabled);
+        }
+    }
+
+    public void writeFilter2(boolean writeFilterEnabled) throws IOException {
+        if (this.writeFilterEnabled2 != writeFilterEnabled) {
+            this.writeFilterEnabled2 = writeFilterEnabled;
+            wevSet(Native.EVFILT_WRITE, writeFilterEnabled ? Native.EV_ADD_CLEAR_ENABLE : Native.EV_DELETE_DISABLE);
+        }
+    }
+
+    private void wevSet(short filter, short flags) {
+        if (isRegistered()) {
+            wevSet0(filter, flags, 0);
         }
     }
 
