@@ -63,5 +63,7 @@ are listed below:
 Automatic modules do not provide any means to declare dependencies, so you need to list each used module separately
 in your `module-info` file.
 
-#### maven package dependency:
- - ubuntu: sudo apt-get install autoconf automake libtool
+#### maven package probloms:
+ ubuntu: 
+ - sudo apt-get install autoconf automake libtool
+ - mvn -pl transport-native-epoll compile

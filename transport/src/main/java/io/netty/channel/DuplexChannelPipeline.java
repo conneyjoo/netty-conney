@@ -22,10 +22,7 @@ import io.netty.util.internal.ObjectUtil;
 
 import java.net.SocketAddress;
 
-import static io.netty.channel.ChannelHandlerMask.MASK_CHANNEL_WRITABILITY_CHANGED;
-import static io.netty.channel.ChannelHandlerMask.MASK_FLUSH;
-import static io.netty.channel.ChannelHandlerMask.MASK_USER_EVENT_TRIGGERED;
-import static io.netty.channel.ChannelHandlerMask.MASK_WRITE;
+import static io.netty.channel.ChannelHandlerMask.*;
 
 public class DuplexChannelPipeline extends DefaultChannelPipeline {
 
@@ -48,95 +45,39 @@ public class DuplexChannelPipeline extends DefaultChannelPipeline {
 
     @Override
     public ChannelPipeline fireChannelActive() {
-        final DuplexHeadContext next = (DuplexHeadContext) head;
-        EventExecutor executor = next.readExecutor();
-        if (executor.inEventLoop()) {
-            next.invokeChannelActive();
-        } else {
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    next.invokeChannelActive();
-                }
-            });
-        }
+        DuplexChannelHandlerContext.invokeChannelActive((DuplexChannelHandlerContext) head);
         return this;
     }
 
     @Override
     public ChannelPipeline fireChannelInactive() {
-        final DuplexHeadContext next = (DuplexHeadContext) head;
-        EventExecutor executor = next.readExecutor();
-        if (executor.inEventLoop()) {
-            next.invokeChannelInactive();
-        } else {
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    next.invokeChannelInactive();
-                }
-            });
-        }
+        DuplexChannelHandlerContext.invokeChannelInactive((DuplexChannelHandlerContext) head);
         return this;
     }
 
     @Override
     public ChannelPipeline fireChannelRead(Object msg) {
-        final DuplexHeadContext next = (DuplexHeadContext) head;
-        final Object m = touch(ObjectUtil.checkNotNull(msg, "msg"), next);
-        EventExecutor executor = next.readExecutor();
-        if (executor.inEventLoop()) {
-            next.invokeChannelRead(m);
-        } else {
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    next.invokeChannelRead(m);
-                }
-            });
-        }
+        DuplexChannelHandlerContext.invokeChannelRead((DuplexChannelHandlerContext) head, msg);
         return this;
     }
 
     @Override
     public ChannelPipeline fireChannelReadComplete() {
-        final DuplexHeadContext next = (DuplexHeadContext) head;
-        EventExecutor executor = next.readExecutor();
-        if (executor.inEventLoop()) {
-            next.invokeChannelReadComplete();
-        } else {
-            AbstractChannelHandlerContext.Tasks tasks = next.invokeTasks;
-            if (tasks == null) {
-                next.invokeTasks = tasks = new AbstractChannelHandlerContext.Tasks(next);
-            }
-            executor.execute(tasks.invokeChannelReadCompleteTask);
-        }
+        DuplexChannelHandlerContext.invokeChannelReadComplete((DuplexChannelHandlerContext) head);
         return this;
     }
 
     @Override
     public ChannelPipeline fireChannelWritabilityChanged() {
-        final DuplexHeadContext next = (DuplexHeadContext) head;
-        EventExecutor executor = next.writeExecutor();
-        if (executor.inEventLoop()) {
-            next.invokeChannelWritabilityChanged();
-        } else {
-            AbstractChannelHandlerContext.Tasks tasks = next.invokeTasks;
-            if (tasks == null) {
-                next.invokeTasks = tasks = new AbstractChannelHandlerContext.Tasks(next);
-            }
-            executor.execute(tasks.invokeChannelWritableStateChangedTask);
-        }
+        DuplexChannelHandlerContext.invokeChannelWritabilityChanged((DuplexChannelHandlerContext) head);
         return this;
     }
 
-    class DuplexChannelHandlerContext extends AbstractChannelHandlerContext {
+    static class DuplexChannelHandlerContext extends AbstractChannelHandlerContext {
 
         public static final int MASK_WRITE_TYPE = MASK_WRITE | MASK_FLUSH | MASK_CHANNEL_WRITABILITY_CHANGED;
 
         private final ChannelHandler handler;
-
-        private int currentMask;
 
         DuplexChannelHandlerContext(DefaultChannelPipeline pipeline, EventExecutor executor,
                                            String name, Class<? extends ChannelHandler> handlerClass) {
@@ -164,48 +105,54 @@ public class DuplexChannelPipeline extends DefaultChannelPipeline {
         }
 
         @Override
-        public AbstractChannelHandlerContext findContextInbound(int mask) {
-            AbstractChannelHandlerContext next = super.findContextInbound(mask);
-            if (next instanceof DuplexChannelHandlerContext) {
-                ((DuplexChannelHandlerContext) next).currentMask = mask;
+        public ChannelHandlerContext fireChannelActive() {
+            invokeChannelActive((DuplexChannelHandlerContext) findContextInbound(MASK_CHANNEL_ACTIVE));
+            return this;
+        }
+
+        static void invokeChannelActive(DuplexChannelHandlerContext next) {
+            EventExecutor executor = next.readExecutor();
+            if (executor.inEventLoop()) {
+                next.invokeChannelActive();
+            } else {
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        next.invokeChannelActive();
+                    }
+                });
             }
-            return next;
         }
 
         @Override
-        public AbstractChannelHandlerContext findContextOutbound(int mask) {
-            AbstractChannelHandlerContext next = super.findContextOutbound(mask);
-            if (next instanceof DuplexChannelHandlerContext) {
-                ((DuplexChannelHandlerContext) next).currentMask = mask;
-            }
-            return next;
+        public ChannelHandlerContext fireChannelInactive() {
+            invokeChannelInactive((DuplexChannelHandlerContext) findContextInbound(MASK_CHANNEL_INACTIVE));
+            return this;
         }
 
-        @Override
-        public EventExecutor executor() {
-            EventExecutor eventExecutor = null;
-            int value = currentMask == 0 ? executionMask : currentMask;
-            if ((value & MASK_WRITE_TYPE) > 0) {
-                eventExecutor = writeExecutor();
+        static void invokeChannelInactive(DuplexChannelHandlerContext next) {
+            EventExecutor executor = next.readExecutor();
+            if (executor.inEventLoop()) {
+                next.invokeChannelInactive();
+            } else {
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        next.invokeChannelInactive();
+                    }
+                });
             }
-            if (eventExecutor == null) {
-                eventExecutor = super.executor();
-            }
-            currentMask = 0;
-            return eventExecutor;
-        }
-
-        @Override
-        public ChannelFuture writeAndFlush(Object msg) {
-            ChannelPromise promise = new DefaultChannelPromise(channel(), writeExecutor());
-            return writeAndFlush(msg, promise);
         }
 
         @Override
         public ChannelHandlerContext fireUserEventTriggered(final Object event) {
+            invokeUserEventTriggered((DuplexChannelHandlerContext) findContextInbound(MASK_USER_EVENT_TRIGGERED), event);
+            return this;
+        }
+
+        static void invokeUserEventTriggered(DuplexChannelHandlerContext next, Object event) {
             ObjectUtil.checkNotNull(event, "event");
-            AbstractChannelHandlerContext next = findContextInbound(MASK_USER_EVENT_TRIGGERED);
-            EventExecutor executor = isWriteEvent(event) ? writeExecutor() : next.executor();
+            EventExecutor executor = next.isWriteEvent(event) ? next.writeExecutor() : next.readExecutor();
             if (executor.inEventLoop()) {
                 next.invokeUserEventTriggered(event);
             } else {
@@ -216,15 +163,122 @@ public class DuplexChannelPipeline extends DefaultChannelPipeline {
                     }
                 });
             }
+        }
+
+        @Override
+        public ChannelHandlerContext fireChannelRead(Object msg) {
+            invokeChannelRead((DuplexChannelHandlerContext) findContextInbound(MASK_CHANNEL_READ), msg);
             return this;
+        }
+
+        static void invokeChannelRead(DuplexChannelHandlerContext next, Object msg) {
+            final Object m = next.pipeline.touch(ObjectUtil.checkNotNull(msg, "msg"), next);
+            EventExecutor executor = next.readExecutor();
+            if (executor.inEventLoop()) {
+                next.invokeChannelRead(m);
+            } else {
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        next.invokeChannelRead(m);
+                    }
+                });
+            }
+        }
+
+        @Override
+        public ChannelHandlerContext fireChannelReadComplete() {
+            invokeChannelReadComplete((DuplexChannelHandlerContext) findContextInbound(MASK_CHANNEL_READ_COMPLETE));
+            return this;
+        }
+
+        static void invokeChannelReadComplete(DuplexChannelHandlerContext next) {
+            EventExecutor executor = next.readExecutor();
+            if (executor.inEventLoop()) {
+                next.invokeChannelReadComplete();
+            } else {
+                AbstractChannelHandlerContext.Tasks tasks = next.invokeTasks;
+                if (tasks == null) {
+                    next.invokeTasks = tasks = new AbstractChannelHandlerContext.Tasks(next);
+                }
+                executor.execute(tasks.invokeChannelReadCompleteTask);
+            }
+        }
+
+        @Override
+        public ChannelHandlerContext fireChannelWritabilityChanged() {
+            invokeChannelWritabilityChanged((DuplexChannelHandlerContext) findContextInbound(MASK_CHANNEL_WRITABILITY_CHANGED));
+            return this;
+        }
+
+        static void invokeChannelWritabilityChanged(DuplexChannelHandlerContext next) {
+            EventExecutor executor = next.writeExecutor();
+            if (executor.inEventLoop()) {
+                next.invokeChannelWritabilityChanged();
+            } else {
+                AbstractChannelHandlerContext.Tasks tasks = next.invokeTasks;
+                if (tasks == null) {
+                    next.invokeTasks = tasks = new AbstractChannelHandlerContext.Tasks(next);
+                }
+                executor.execute(tasks.invokeChannelWritableStateChangedTask);
+            }
+        }
+
+        public boolean isWriteExecutor() {
+            return (executionMask & MASK_WRITE_TYPE) > 0;
         }
 
         public boolean isWriteEvent(Object event) {
             return event.toString().contains("WRITER_IDLE");
         }
+
+        @Override
+        public EventExecutor executor() {
+            EventExecutor eventExecutor = null;
+            if (isWriteExecutor()) {
+                eventExecutor = writeExecutor();
+            }
+            if (eventExecutor == null) {
+                eventExecutor = super.executor();
+            }
+            return eventExecutor;
+        }
+
+        @Override
+        public ChannelFuture disconnect(ChannelPromise promise) {
+            return super.disconnect(promise);
+        }
+
+        @Override
+        public ChannelFuture close(ChannelPromise promise) {
+            return super.close(promise);
+        }
+
+        @Override
+        public ChannelHandlerContext read() {
+            final DuplexChannelHandlerContext next = (DuplexChannelHandlerContext) findContextOutbound(MASK_READ);
+            EventExecutor executor = next.readExecutor();
+            if (executor.inEventLoop()) {
+                next.invokeRead();
+            } else {
+                Tasks tasks = next.invokeTasks;
+                if (tasks == null) {
+                    next.invokeTasks = tasks = new Tasks(next);
+                }
+                executor.execute(tasks.invokeReadTask);
+            }
+            return this;
+        }
+
+        @Override
+        public ChannelFuture writeAndFlush(Object msg) {
+            ChannelPromise promise = new DefaultChannelPromise(channel(), writeExecutor());
+            return writeAndFlush(msg, promise);
+        }
     }
 
     class DuplexTailContext extends DuplexChannelHandlerContext implements ChannelInboundHandler {
+
         DuplexTailContext(DefaultChannelPipeline pipeline) {
             super(pipeline, null, TAIL_NAME, DuplexTailContext.class);
             setAddComplete();

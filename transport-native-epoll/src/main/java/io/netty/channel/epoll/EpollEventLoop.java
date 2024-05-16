@@ -51,10 +51,10 @@ class EpollEventLoop extends SingleThreadEventLoop {
         Epoll.ensureAvailability();
     }
 
-    private final FileDescriptor epollFd;
+    public final FileDescriptor epollFd;
     private final FileDescriptor eventFd;
     private final FileDescriptor timerFd;
-    private final IntObjectMap<AbstractEpollChannel> channels = new IntObjectHashMap<AbstractEpollChannel>(4096);
+    public final IntObjectMap<AbstractEpollChannel> channels = new IntObjectHashMap<AbstractEpollChannel>(4096);
     private final boolean allowGrowing;
     private final EpollEventArray events;
 
@@ -216,7 +216,7 @@ class EpollEventLoop extends SingleThreadEventLoop {
     /**
      * The flags of the given epoll was modified so update the registration
      */
-    void modify(AbstractEpollChannel ch) throws IOException {
+    public void modify(AbstractEpollChannel ch) throws IOException {
         assert inEventLoop();
         Native.epollCtlMod(epollFd.intValue(), ch.socket.intValue(), ch.flags);
     }

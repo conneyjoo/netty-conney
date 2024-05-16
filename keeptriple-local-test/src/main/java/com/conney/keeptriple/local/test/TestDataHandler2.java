@@ -23,7 +23,7 @@ public class TestDataHandler2 extends AbstractHandler<TestData> {
     @Override
     public void afterPropertiesSet() {
         //Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> logger.info("i = {}", i), 1, 30, TimeUnit.SECONDS);
-        for (int i = 1; i <= 1; i++) {
+        for (int i = 1; i <= 0; i++) {
             nums.add(i);
         }
     }

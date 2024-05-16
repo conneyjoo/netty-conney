@@ -24,6 +24,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.DuplexEpollSocketChannel;
 import io.netty.channel.kqueue.DuplexKQueueSocketChannel;
 import io.netty.channel.kqueue.KQueueSocketChannel;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -59,7 +60,7 @@ public class TestClient extends NettyClient implements CommandLineRunner {
         bs = new Bootstrap();
 
         bs.group(bossGroup)
-                .channel(DuplexKQueueSocketChannel.class)
+                .channel(DuplexEpollSocketChannel.class)
                 //.channel(KQueueSocketChannel.class)
                 //.option(ChannelOption.MAX_MESSAGES_PER_READ, 16)
                 //.option(ChannelOption.SO_RCVBUF, 1024 * 8)
@@ -81,14 +82,14 @@ public class TestClient extends NettyClient implements CommandLineRunner {
 
         new Thread(() -> {
             ThreadUtils.sleepSilent(5000);
-            int size = 50000;
+            int size = 0;
             TestData testData = new TestData();
             testData.setData(TestData.KB1);
             ByteBuf buf = testData.encode();
             for (int i = 0; i < size; i++) {
                 ByteBuf data = buf.retain().duplicate();
                 ctx.channel().writeAndFlush(data).addListener((f) -> {
-                    //logger.info("write " + f.isSuccess());
+//                    logger.info("write " + f.isSuccess());
                 });
                 //ThreadUtils.sleepSilent(1000);
             }
@@ -136,7 +137,7 @@ public class TestClient extends NettyClient implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        connect("127.0.0.1", 2200);
+        connect("172.27.4.22", 2200);
     }
 
     public static void main(String[] args) {

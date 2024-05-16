@@ -15,11 +15,7 @@
  */
 package io.netty.channel.epoll;
 
-import io.netty.channel.ChannelPromise;
-import io.netty.channel.DefaultChannelPipeline;
-import io.netty.channel.DefaultSelectStrategyFactory;
-import io.netty.channel.DuplexChannelPipeline;
-import io.netty.channel.EventLoop;
+import io.netty.channel.*;
 import io.netty.channel.socket.DuplexSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.GlobalEventExecutor;
@@ -31,16 +27,65 @@ import java.util.concurrent.Executor;
 
 public final class DuplexEpollSocketChannel extends EpollSocketChannel implements DuplexSocketChannel {
 
+    protected int wflags = Native.EPOLLET;
+
     private EpollEventLoop writeEventLoop;
 
     public DefaultChannelPipeline newChannelPipeline() {
         return new DuplexChannelPipeline(this);
     }
 
-    public EpollEventLoop peelWriteEventLoop() {
+    public EpollEventLoop peelWriteEventLoop() throws Exception {
         EpollEventLoop eventLoop = (EpollEventLoop) eventLoop();
-        //eventLoop.evSet(this, Native.EVFILT_WRITE, Native.EV_DELETE_DISABLE, 0);
+        clearFlag(Native.EPOLLOUT);
         return createKQueueEventLoop(eventLoop);
+    }
+
+    @Override
+    void setFlag(int flag) throws IOException {
+        if (writeEventLoop == null || eventLoop.inEventLoop()) {
+            super.setFlag(flag);
+        } else if (writeEventLoop.inEventLoop()) {
+            setWFlag(flag);
+        }
+    }
+
+    @Override
+    void clearFlag(int flag) throws IOException {
+        if (writeEventLoop == null || eventLoop.inEventLoop()) {
+            super.clearFlag(flag);
+        } else if (writeEventLoop.inEventLoop()) {
+            clearWFlag(writeEventLoop, flag);
+        }
+    }
+
+    void setWFlag(int flag) throws IOException {
+        setWFlag(writeEventLoop, flag);
+    }
+
+    void setWFlag(EpollEventLoop writeEventLoop, int flag) throws IOException {
+        if (!isWFlagSet(flag)) {
+            wflags |= flag;
+            modifyWEvents(writeEventLoop);
+        }
+    }
+
+    void clearWFlag(EpollEventLoop writeEventLoop, int flag) throws IOException {
+        if (isWFlagSet(flag)) {
+            wflags &= ~flag;
+            modifyWEvents(writeEventLoop);
+        }
+    }
+
+    boolean isWFlagSet(int flag) {
+        return (wflags & flag) != 0;
+    }
+
+    private void modifyWEvents(EpollEventLoop writeEventLoop) throws IOException {
+        if (isOpen() && isRegistered()) {
+            assert writeEventLoop.inEventLoop();
+            Native.epollCtlMod(writeEventLoop.epollFd.intValue(), this.socket.intValue(), wflags);
+        }
     }
 
     public EpollEventLoop createKQueueEventLoop(EpollEventLoop eventLoop) {
@@ -57,17 +102,17 @@ public final class DuplexEpollSocketChannel extends EpollSocketChannel implement
     }
 
     public void doRegisterWriteEventLoop(EpollEventLoop writeEventLoop) throws Exception {
-        writeEventLoop.add(this);
+        addWriteEventLoop(writeEventLoop);
+        setWFlag(writeEventLoop, Native.EPOLLOUT);
         this.writeEventLoop = writeEventLoop;
     }
 
-    public void writeFilter(boolean writeFilterEnabled) throws IOException {
-    }
-
-    private void wevSet0(short filter, short flags, int fflags) {
-        if (isOpen()) {
-           // ((EpollEventLoop) writeEventLoop()).evSet(this, filter, flags, fflags);
-        }
+    public void addWriteEventLoop(EpollEventLoop writeEventLoop) throws IOException {
+        assert writeEventLoop.inEventLoop();
+        int fd = this.socket.intValue();
+        Native.epollCtlAdd(writeEventLoop.epollFd.intValue(), fd, wflags);
+        AbstractEpollChannel old = writeEventLoop.channels.put(fd, this);
+        assert old == null || !old.isOpen();
     }
 
     @Override
@@ -136,19 +181,25 @@ public final class DuplexEpollSocketChannel extends EpollSocketChannel implement
         }
 
         public void prepareWriteEventLoop(ChannelPromise promise) {
-            final EpollEventLoop writeEventLoop = peelWriteEventLoop();
-            writeEventLoop.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        doRegisterWriteEventLoop(writeEventLoop);
-                    } catch (Throwable t) {
-                        closeForcibly();
-                        closeFuture.setClosed();
-                        safeSetFailure(promise, t);
+            try {
+                final EpollEventLoop writeEventLoop = peelWriteEventLoop();
+                writeEventLoop.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            doRegisterWriteEventLoop(writeEventLoop);
+                        } catch (Throwable t) {
+                            closeForcibly();
+                            closeFuture.setClosed();
+                            safeSetFailure(promise, t);
+                        }
                     }
-                }
-            });
+                });
+            } catch (Throwable t) {
+                closeForcibly();
+                closeFuture.setClosed();
+                safeSetFailure(promise, t);
+            }
         }
     }
 

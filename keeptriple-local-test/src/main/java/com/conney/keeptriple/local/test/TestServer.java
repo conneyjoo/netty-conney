@@ -41,7 +41,7 @@ public class TestServer extends NettyServer implements CommandLineRunner {
     public void accept(ChannelHandlerContext ctx) {
         new Thread(() -> {
             ThreadUtils.sleepSilent(5000);
-            int size = 5000;
+            int size = 0;
             TestData testData = new TestData();
             testData.setData(TestData.KB1);
             ByteBuf buf = testData.encode();

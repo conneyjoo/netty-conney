@@ -678,7 +678,7 @@ public abstract class AbstractChannelHandlerContext implements ChannelHandlerCon
         return this;
     }
 
-    private void invokeRead() {
+    public void invokeRead() {
         if (invokeHandler()) {
             try {
                 ((ChannelOutboundHandler) handler()).read(this);
