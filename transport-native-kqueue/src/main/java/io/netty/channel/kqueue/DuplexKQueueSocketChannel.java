@@ -142,7 +142,7 @@ public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements Du
             // Regardless if the connection attempt was cancelled, channelActive() event should be triggered,
             // because what happened is what happened.
             if (!wasActive && active) {
-                acitveWriteEventLoop(promise);
+                activeWriteEventLoop(promise);
                 pipeline().fireChannelActive();
             }
 
@@ -160,7 +160,7 @@ public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements Du
             super.finishConnect();
         }
 
-        public void acitveWriteEventLoop(ChannelPromise promise) {
+        public void activeWriteEventLoop(ChannelPromise promise) {
             try {
                 KQueueEventLoop writeEventLoop = peelWriteEventLoop();
                 doRegisterWriteEventLoop(writeEventLoop);

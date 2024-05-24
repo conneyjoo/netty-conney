@@ -165,7 +165,7 @@ public final class DuplexEpollSocketChannel extends EpollSocketChannel implement
             // Regardless if the connection attempt was cancelled, channelActive() event should be triggered,
             // because what happened is what happened.
             if (!wasActive && active) {
-                acitveWriteEventLoop(promise);
+                activeWriteEventLoop(promise);
                 pipeline().fireChannelActive();
             }
 
@@ -183,7 +183,7 @@ public final class DuplexEpollSocketChannel extends EpollSocketChannel implement
             super.finishConnect();
         }
 
-        public void acitveWriteEventLoop(ChannelPromise promise) {
+        public void activeWriteEventLoop(ChannelPromise promise) {
             try {
                 EpollEventLoop writeEventLoop = peelWriteEventLoop();
                 doRegisterWriteEventLoop(writeEventLoop);
