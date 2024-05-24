@@ -53,8 +53,7 @@ public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements Du
             ThreadPerTaskExecutor executor = new ThreadPerTaskExecutor(new DefaultThreadFactory(poolName));
             return new KQueueEventLoop(eventLoop.parent(), executor, 0,
                     DefaultSelectStrategyFactory.INSTANCE.newSelectStrategy(),
-                    RejectedExecutionHandlers.reject(),
-                    null);
+                    RejectedExecutionHandlers.reject(), null);
         } catch (Exception e) {
             throw new IllegalStateException("failed to create a child event loop", e);
         }

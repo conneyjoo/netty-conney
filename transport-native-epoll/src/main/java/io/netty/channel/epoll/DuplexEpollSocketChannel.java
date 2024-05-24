@@ -15,7 +15,11 @@
  */
 package io.netty.channel.epoll;
 
-import io.netty.channel.*;
+import io.netty.channel.ChannelPromise;
+import io.netty.channel.DefaultChannelPipeline;
+import io.netty.channel.DefaultSelectStrategyFactory;
+import io.netty.channel.DuplexChannelPipeline;
+import io.netty.channel.EventLoop;
 import io.netty.channel.socket.DuplexSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.GlobalEventExecutor;
@@ -94,8 +98,7 @@ public final class DuplexEpollSocketChannel extends EpollSocketChannel implement
             ThreadPerTaskExecutor executor = new ThreadPerTaskExecutor(new DefaultThreadFactory(poolName));
             return new EpollEventLoop(eventLoop.parent(), executor, 0,
                     DefaultSelectStrategyFactory.INSTANCE.newSelectStrategy(),
-                    RejectedExecutionHandlers.reject(),
-                    null);
+                    RejectedExecutionHandlers.reject(), null);
         } catch (Exception e) {
             throw new IllegalStateException("failed to create a child event loop", e);
         }

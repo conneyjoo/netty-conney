@@ -146,7 +146,8 @@ public class DuplexChannelPipeline extends DefaultChannelPipeline {
 
         @Override
         public ChannelHandlerContext fireUserEventTriggered(final Object event) {
-            invokeUserEventTriggered((DuplexChannelHandlerContext) findContextInbound(MASK_USER_EVENT_TRIGGERED), event);
+            invokeUserEventTriggered(
+                    (DuplexChannelHandlerContext) findContextInbound(MASK_USER_EVENT_TRIGGERED), event);
             return this;
         }
 
@@ -207,7 +208,8 @@ public class DuplexChannelPipeline extends DefaultChannelPipeline {
 
         @Override
         public ChannelHandlerContext fireChannelWritabilityChanged() {
-            invokeChannelWritabilityChanged((DuplexChannelHandlerContext) findContextInbound(MASK_CHANNEL_WRITABILITY_CHANGED));
+            invokeChannelWritabilityChanged(
+                    (DuplexChannelHandlerContext) findContextInbound(MASK_CHANNEL_WRITABILITY_CHANGED));
             return this;
         }
 
