@@ -42,7 +42,33 @@ public final class DuplexEpollSocketChannel extends EpollSocketChannel implement
     public EpollEventLoop peelWriteEventLoop() throws Exception {
         EpollEventLoop eventLoop = (EpollEventLoop) eventLoop();
         clearFlag(Native.EPOLLOUT);
-        return createKQueueEventLoop(eventLoop);
+        return createWriteEventEventLoop(eventLoop);
+    }
+
+    public EpollEventLoop createWriteEventEventLoop(EpollEventLoop eventLoop) {
+        try {
+            String poolName = eventLoop.thread.getName() + "-write";
+            ThreadPerTaskExecutor executor = new ThreadPerTaskExecutor(new DefaultThreadFactory(poolName));
+            return new EpollEventLoop(eventLoop.parent(), executor, 0,
+                    DefaultSelectStrategyFactory.INSTANCE.newSelectStrategy(),
+                    RejectedExecutionHandlers.reject(), null);
+        } catch (Exception e) {
+            throw new IllegalStateException("failed to create a child event loop", e);
+        }
+    }
+
+    public void doRegisterWriteEventLoop(EpollEventLoop writeEventLoop) throws Exception {
+        addWriteEventLoop(writeEventLoop);
+        setWFlag(writeEventLoop, Native.EPOLLOUT);
+        this.writeEventLoop = writeEventLoop;
+    }
+
+    public void addWriteEventLoop(EpollEventLoop writeEventLoop) throws IOException {
+        assert writeEventLoop.inEventLoop();
+        int fd = this.socket.intValue();
+        Native.epollCtlAdd(writeEventLoop.epollFd.intValue(), fd, wflags);
+        AbstractEpollChannel old = writeEventLoop.channels.put(fd, this);
+        assert old == null || !old.isOpen();
     }
 
     @Override
@@ -92,32 +118,6 @@ public final class DuplexEpollSocketChannel extends EpollSocketChannel implement
         }
     }
 
-    public EpollEventLoop createKQueueEventLoop(EpollEventLoop eventLoop) {
-        try {
-            String poolName = eventLoop.thread.getName() + "-write";
-            ThreadPerTaskExecutor executor = new ThreadPerTaskExecutor(new DefaultThreadFactory(poolName));
-            return new EpollEventLoop(eventLoop.parent(), executor, 0,
-                    DefaultSelectStrategyFactory.INSTANCE.newSelectStrategy(),
-                    RejectedExecutionHandlers.reject(), null);
-        } catch (Exception e) {
-            throw new IllegalStateException("failed to create a child event loop", e);
-        }
-    }
-
-    public void doRegisterWriteEventLoop(EpollEventLoop writeEventLoop) throws Exception {
-        addWriteEventLoop(writeEventLoop);
-        setWFlag(writeEventLoop, Native.EPOLLOUT);
-        this.writeEventLoop = writeEventLoop;
-    }
-
-    public void addWriteEventLoop(EpollEventLoop writeEventLoop) throws IOException {
-        assert writeEventLoop.inEventLoop();
-        int fd = this.socket.intValue();
-        Native.epollCtlAdd(writeEventLoop.epollFd.intValue(), fd, wflags);
-        AbstractEpollChannel old = writeEventLoop.channels.put(fd, this);
-        assert old == null || !old.isOpen();
-    }
-
     @Override
     protected AbstractEpollUnsafe newUnsafe() {
         return new DuplexEpollSocketChannelUnsafe();
@@ -165,7 +165,7 @@ public final class DuplexEpollSocketChannel extends EpollSocketChannel implement
             // Regardless if the connection attempt was cancelled, channelActive() event should be triggered,
             // because what happened is what happened.
             if (!wasActive && active) {
-                prepareWriteEventLoop(promise);
+                acitveWriteEventLoop(promise);
                 pipeline().fireChannelActive();
             }
 
@@ -183,21 +183,10 @@ public final class DuplexEpollSocketChannel extends EpollSocketChannel implement
             super.finishConnect();
         }
 
-        public void prepareWriteEventLoop(ChannelPromise promise) {
+        public void acitveWriteEventLoop(ChannelPromise promise) {
             try {
-                final EpollEventLoop writeEventLoop = peelWriteEventLoop();
-                writeEventLoop.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            doRegisterWriteEventLoop(writeEventLoop);
-                        } catch (Throwable t) {
-                            closeForcibly();
-                            closeFuture.setClosed();
-                            safeSetFailure(promise, t);
-                        }
-                    }
-                });
+                EpollEventLoop writeEventLoop = peelWriteEventLoop();
+                doRegisterWriteEventLoop(writeEventLoop);
             } catch (Throwable t) {
                 closeForcibly();
                 closeFuture.setClosed();

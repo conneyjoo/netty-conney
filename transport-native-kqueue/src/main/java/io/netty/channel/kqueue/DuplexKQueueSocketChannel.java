@@ -33,7 +33,7 @@ import java.util.concurrent.Executor;
 
 public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements DuplexSocketChannel {
 
-    protected boolean writeFilterEnabled2;
+    protected boolean writeWFilterEnabled;
 
     private KQueueEventLoop writeEventLoop;
 
@@ -68,13 +68,13 @@ public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements Du
         if (writeEventLoop == null || eventLoop.inEventLoop()) {
             super.writeFilter(writeFilterEnabled);
         } else if (writeEventLoop.inEventLoop()) {
-            writeFilter2(writeFilterEnabled);
+            writeWFilter(writeFilterEnabled);
         }
     }
 
-    public void writeFilter2(boolean writeFilterEnabled) throws IOException {
-        if (this.writeFilterEnabled2 != writeFilterEnabled) {
-            this.writeFilterEnabled2 = writeFilterEnabled;
+    public void writeWFilter(boolean writeFilterEnabled) throws IOException {
+        if (this.writeWFilterEnabled != writeFilterEnabled) {
+            this.writeWFilterEnabled = writeFilterEnabled;
             wevSet(Native.EVFILT_WRITE, writeFilterEnabled ? Native.EV_ADD_CLEAR_ENABLE : Native.EV_DELETE_DISABLE);
         }
     }
@@ -142,7 +142,7 @@ public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements Du
             // Regardless if the connection attempt was cancelled, channelActive() event should be triggered,
             // because what happened is what happened.
             if (!wasActive && active) {
-                prepareWriteEventLoop(promise);
+                acitveWriteEventLoop(promise);
                 pipeline().fireChannelActive();
             }
 
@@ -160,20 +160,15 @@ public class DuplexKQueueSocketChannel extends KQueueSocketChannel implements Du
             super.finishConnect();
         }
 
-        public void prepareWriteEventLoop(ChannelPromise promise) {
-            final KQueueEventLoop writeEventLoop = peelWriteEventLoop();
-            writeEventLoop.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        doRegisterWriteEventLoop(writeEventLoop);
-                    } catch (Throwable t) {
-                        closeForcibly();
-                        closeFuture.setClosed();
-                        safeSetFailure(promise, t);
-                    }
-                }
-            });
+        public void acitveWriteEventLoop(ChannelPromise promise) {
+            try {
+                KQueueEventLoop writeEventLoop = peelWriteEventLoop();
+                doRegisterWriteEventLoop(writeEventLoop);
+            } catch (Throwable t) {
+                closeForcibly();
+                closeFuture.setClosed();
+                safeSetFailure(promise, t);
+            }
         }
     }
 
